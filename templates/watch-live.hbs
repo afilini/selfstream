@@ -1,0 +1,170 @@
+{{#*inline "page"}}
+
+<h1>{{title}}</h1>
+
+<video controls crossorigin playsinline></video>
+
+<div class="row mt-3">
+    <div class="col-12 col-md-7">
+        <h4>Viewers: <span id="viewers">0</span></h4><br />
+
+        {{#if status.Live}}
+        Currently live, since <span date-timestamp="{{status.Live.started_timestamp}}"></span>
+        {{else}}
+            {{#if status.Scheduled}}
+                This live is scheduled to start at <span date-timestamp="{{status.Scheduled.timestamp}}"></span>
+            {{else}}
+                This live just finished and the video is currently being processed...
+            {{/if}}
+        {{/if}}
+    </div>
+    <div class="col-12 col-md-5">
+        {{#unless status.Live}}
+            {{#unless status.Scheduled}}
+            {{else}}
+        <div id="accordion">
+            <div class="card">
+              <div id="headingOne">
+                  <button class="btn btn-primary btn-block mb-0" data-toggle="collapse" data-target="#collapseChat" aria-expanded="true" aria-controls="collapseChat">
+                    <h3>Live Chat</h3>
+                  </button>
+              </div>
+
+              <div id="collapseChat" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                <div class="card-body p-0">
+                    <div class="p-2 border d-flex flex-wrap m-0" id="donationBadgeContainer">
+                    </div>
+
+                    <ul class="list-group list-group-flush" id="chatList" style="max-height: 25vh; min-height: 25vh; overflow-y: scroll;"></ul>
+
+                    <form>
+                      <div class="form-row align-items-center">
+                        <div class="col-12">
+                          <div class="input-group">
+                            <textarea class="form-control border-0" rows="1" id="chatText" placeholder="Say something!" style="resize: none;"></textarea>
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-primary-outline" data-toggle="modal" data-target="#donateModal" id="openDonateModalButton">
+                                    <i class="fab fa-btc"></i>
+                                </button>
+                                <button type="button" class="btn btn-primary" id="chatSendButton" disabled>
+                                </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                </div>
+              </div>
+            </div>
+            {{/unless}}
+        {{/unless}}
+    </div>
+</div>
+
+<div class="modal fade" id="donateModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Boost your message</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="amountButtons" class="col-form-label">Amount: </label><br/>
+        <div class="btn-group btn-group-toggle w-100" data-toggle="buttons" id="amountButtons">
+  <label class="btn btn-outline-info">
+    <input type="radio" name="amountValue" autocomplete="off" value="1000" checked>1,000 <i class="fas fa-comment-dollar"></i>
+  </label>
+  <label class="btn btn-outline-primary">
+    <input type="radio" name="amountValue" autocomplete="off" value="10000">10,000 <i class="fas fa-comment-dollar"></i>
+  </label>
+  <label class="btn btn-outline-success">
+    <input type="radio" name="amountValue" autocomplete="off" value="25000">25,000 <i class="fas fa-comment-dollar"></i>
+  </label>
+  <label class="btn btn-outline-warning">
+    <input type="radio" name="amountValue" autocomplete="off" value="50000">50,000 <i class="fas fa-comment-dollar"></i>
+  </label>
+  <label class="btn btn-outline-danger">
+    <input type="radio" name="amountValue" autocomplete="off" value="100000">100,000 <i class="fas fa-comment-dollar"></i>
+  </label>
+</div>
+</div>
+          <div class="form-group">
+            <label for="donateModalText" class="col-form-label">Message:</label>
+            <textarea class="form-control" id="donateModalText"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="donateModalButton">Send message</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src ="https://testnet.demo.btcpayserver.org/modal/btcpay.js"></script>
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,Array.prototype.includes,CustomEvent,Object.entries,Object.values,URL"></script>
+<script src="https://unpkg.com/plyr@3"></script>
+<script src="https://cdn.rawgit.com/video-dev/hls.js/18bb552/dist/hls.min.js"></script>
+<script src="/static/chat.js"></script>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const source = '{{cdn_url}}/hls/{{id}}.m3u8';
+        const video = document.querySelector('video');
+
+        // For more options see: https://github.com/sampotts/plyr/#options
+        // captions.update is required for captions to work with hls.js
+        const player = new Plyr(video, {
+            title: '{{title}}',
+            invertTime: true,
+            quality: {
+                default: 480,
+                forced: true,
+                options: [240, 480, 720],
+                onChange: (new_val) => {
+                    console.log('changed to', new_val);
+                }
+            },
+        });
+
+        if (!Hls.isSupported()) {
+            alert("not supported");
+            return;
+        }
+
+        // For more Hls.js options, see https://github.com/dailymotion/hls.js
+        const hls = new Hls();
+        hls.loadSource(source);
+        hls.attachMedia(video);
+        window.hls = hls;
+
+        // quality change
+        player.on('qualitychange', (data) => {
+            const value = data.detail.quality;
+
+            hls.levels.forEach((l, i) => {
+                if (l.url[0].includes("{{id}}_" + value)) {
+                    console.log('setting to level=', i);
+                    hls.currentLevel = i;
+                }
+            });
+        });
+
+        {{#unless status.Live}}
+            player.on('loadedmetadata', () => {
+                player.currentTime = 0;
+            });
+        {{/unless}}
+
+        // Expose player so it can be used from the console
+        window.player = player;
+    });
+</script>
+
+{{/inline}}
+
+{{~> layouts/main~}}

@@ -1,0 +1,46 @@
+{{#*inline "style"}}
+.video-preview {
+    width: calc(25% - 1rem);
+}
+
+@media only screen and (max-width: 767.98px) {
+    .video-preview {
+        width: 100%;
+    }
+}
+{{/inline}}
+
+{{#*inline "page"}}
+
+    <div class="list-group d-flex justify-content-between flex-column flex-md-row flex-wrap py-3">
+
+    {{#each this}}
+
+
+  <a href="/watch?v={{id}}" class="video-preview list-group-item list-group-item-action flex-column align-items-start mb-3 border rounded">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">{{title}}</h5>
+    </div>
+    <div class="mb-1" style="background-color: green; width: 100%; height: 120px; clear: both;"></div>
+
+    {{#if status.Live}}
+        <span class="badge badge-danger">Live</span>
+    {{else}}
+        {{#if status.Scheduled}}
+            <span class="badge badge-primary">Scheduled <span date-timestamp="{{status.Scheduled.timestamp}}"></span></span>
+        {{else}}
+            {{#unless status.Published.timestamp}}
+                <span class="badge badge-info">Processing</span>
+            {{else}}
+                <small class="text-muted" date-timestamp="{{status.Published.timestamp}}"></small>
+            {{/unless}}
+        {{/if}}
+    {{/if}}
+  </a>
+
+    {{/each}}
+    </div>
+
+{{/inline}}
+
+{{~> layouts/main~}}

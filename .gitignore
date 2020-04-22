@@ -1,0 +1,8 @@
+/target
+
+*.swp
+*.rdb
+
+nginx-release-*
+
+config.toml

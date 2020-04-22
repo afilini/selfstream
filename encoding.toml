@@ -1,0 +1,48 @@
+# Bitrates are specified in kbit/s
+
+# https://www.tutorialguidacomefare.com/test-video-quality-720p-1080p-1440p-2160p-max-bitrate-which-compresses-youtube/
+# WEBM VP9 CODEC
+# 
+# 0- Youtube compresses to 4320p (8K) (7680×4320) with a bit rate  21.2 Mbps
+# 1- Youtube compresses to 2160p (4K) (3840×2160) with a bit rate  17.3 Mbps
+# 2- Youtube compresses to (2K) 1440p (2560×1440) with a bit rate  8.589 Mbps
+# 3- Youtube compresses 1080p (1920×1080) with a bit rate  2.567 Mbps
+# 4- Youtube compresses to 720p (1280×720) with a bit rate  1.468 Mbps
+# 5- Youtube compresses to 480p (854×480) with a bit rate  0.727 Mbps
+# 6- Youtube compresses to 360p  (640×360) with a bit rate  0.373 Mbps
+# 7- Youtube compresses 240p (426×240) with a bit rate  0.157 Mbps
+# 8- Youtube compresses to 144p (256×144) with a bit rate  0.085 Mbps
+# 
+# MP4 H264 CODEC
+# 
+# 0- Youtube compresses to 4320p (8K) (7680×4320) with a bit rate  78.4 Mbps
+# 1- Youtube compresses to 2160p (4K) (3840×2160) with a bit rate  23.1 Mbps
+# 2- Youtube compresses to (2K) 1440p (2560×1440) with a bit rate  10.4 Mbps
+# 3- Youtube compresses 1080p (1920×1080) with a bit rate  2.309 Mbps
+# 4- Youtube compresses to 720p (1280×720) with a bit rate  1.378 Mbps
+# 5- Youtube compresses to 480p (854×480) with a bit rate  1.155 Mbps
+# 6- Youtube compresses to 360p  (640×360) with a bit rate  0.525 Mbps
+# 7- Youtube compresses 240p (426×240) with a bit rate  0.242 Mbps
+# 8- Youtube compresses to 144p (256×144) with a bit rate 0.109 Mbps
+
+# TODO:
+# [live]
+# 240p = { height = 240, bitrate = 242, audio_channels = 1 }
+# 480p = { height = 480, bitrate = 1155, audio_channels = 2 }
+# 720p = { height = 720, bitrate = 1378, audio_channels = 2 }
+# 1080p = { height = 1080, bitrate = 2309, audio_channels = 2 }
+# original = true
+
+[vod.vp9]
+240p = { height = 240, bitrate = 157, audio_channels = 1, max_fps = 24 }
+360p = { height = 360, bitrate = 373, audio_channels = 2, max_fps = 24 }
+480p = { height = 480, bitrate = 727, audio_channels = 2, max_fps = 24 }
+720p = { height = 720, bitrate = 1468 , audio_channels = 2, max_fps = 60 }
+1080p = { height = 1080, bitrate = 2567, audio_channels = 2, max_fps = 60 }
+
+[vod.h264]
+240p = { height = 240, bitrate = 242, audio_channels = 1, max_fps = 24 }
+360p = { height = 360, bitrate = 525, audio_channels = 2, max_fps = 24 }
+480p = { height = 480, bitrate = 1155, audio_channels = 2, max_fps = 24 }
+720p = { height = 720, bitrate = 1378, audio_channels = 2, max_fps = 60 }
+1080p = { height = 1080, bitrate = 2309, audio_channels = 2, max_fps = 60 }

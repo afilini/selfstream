@@ -1,0 +1,31 @@
+{{#*inline "page"}}
+
+<h1>{{title}}</h1>
+
+<video controls crossorigin playsinline>
+{{#each status.Published.variants as | variant |}}
+    <source src="/encoded/{{../id}}/{{variant.[2]}}" type="{{variant.[1]}}" size="{{variant.[0]}}" />
+{{/each}}
+</video>
+
+<div class="row mt-3">
+    <div class="col-12">
+        Published at <span date-timestamp="{{status.Published.timestamp}}"></span>. Duration {{status.Published.duration}}s.
+    </div>
+</div>
+
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,Array.prototype.includes,CustomEvent,Object.entries,Object.values,URL"></script>
+<script src="https://unpkg.com/plyr@3"></script>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', () => {
+        const video = document.querySelector('video');
+
+        const player = new Plyr(video, {
+            title: '{{title}}',
+        });
+    });
+</script>
+
+{{/inline}}
+
+{{~> layouts/main~}}

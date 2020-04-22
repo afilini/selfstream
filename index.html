@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="https://unpkg.com/plyr@3/dist/plyr.css"/>
+    </head>
+
+    <body>
+        <video controls crossorigin playsinline>
+        </video>
+    </body>
+
+
+    <!-- Plyr resources and browser polyfills are specified in the pen settings -->
+    <!-- Hls.js 0.9.x and 0.10.x both have critical bugs affecting this demo. Using fixed git hash to when it was working (0.10.0 pre-release), until https://github.com/video-dev/hls.js/issues/1790 has been resolved -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,Array.prototype.includes,CustomEvent,Object.entries,Object.values,URL"></script>
+    <script src="https://unpkg.com/plyr@3"></script>
+    <script src="https://cdn.rawgit.com/video-dev/hls.js/18bb552/dist/hls.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+        <script type="text/javascript">
+            document.addEventListener('DOMContentLoaded', () => {
+                const source = 'http://localhost:8081/hls/movie.m3u8';
+                const video = document.querySelector('video');
+
+                // For more options see: https://github.com/sampotts/plyr/#options
+                // captions.update is required for captions to work with hls.js
+                const player = new Plyr(video, {
+                    title: 'Title',
+                    invertTime: true,
+                    quality: {
+                        default: 480,
+                        forced: true,
+                        options: [480, 720],
+                        onChange: (a, b, c, d) => {
+                            console.log(a, b, c, d);
+                            console.log('changed');
+                        }
+                    },
+                });
+
+                if (!Hls.isSupported()) {
+                    alert("not supported");
+                    return;
+                }
+
+                // For more Hls.js options, see https://github.com/dailymotion/hls.js
+                const hls = new Hls();
+                hls.loadSource(source);
+                hls.attachMedia(video);
+                window.hls = hls;
+
+                // quality change
+                player.on('qualitychange', () => {
+                    console.log(hls.levels);
+                });
+
+                // Expose player so it can be used from the console
+                window.player = player;
+            });
+        </script>
+</html>

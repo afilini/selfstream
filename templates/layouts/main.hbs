@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
+
+    <!-- Plyr CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/plyr@3/dist/plyr.css"/>
+
+    <!-- Custom CSS -->
+    <style>
+        {{~> style}}
+    </style>
+
+    <title>{{#if title}}{{title}}{{else}}SelfStream{{/if}}</title>
+  </head>
+  <body>
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.0.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+    {{~> partials/navbar}} 
+
+    <div class="container">
+        {{~> page}}
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('[date-timestamp]').each(function() {
+                const timestamp = $(this).attr('date-timestamp');
+                $(this).text(new Date(timestamp * 1000).toLocaleString());
+            });
+        });
+    </script>
+  </body>
+</html>
