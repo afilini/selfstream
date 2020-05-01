@@ -1,15 +1,16 @@
-use std::sync::Arc;
 use std::ops::Deref;
+use std::sync::Arc;
 
 use rocket::routes;
+use rocket_contrib::templates::handlebars::handlebars_helper;
 use rocket_contrib::templates::Template;
 
-use crate::db::RedisMultiplexed;
 use crate::config::Config;
+use crate::db::RedisMultiplexed;
 
+mod btcpay;
 mod pages;
 mod rtmp;
-mod btcpay;
 
 fn json_merge(a: &mut serde_json::Value, b: &serde_json::Value) {
     match (a, b) {
@@ -43,18 +44,23 @@ impl GlobalContext {
     }
 }
 
+handlebars_helper!(streq: |x: str, y: str| x == y);
+
 pub fn start(db: Arc<RedisMultiplexed>, config: Arc<Config>) {
     rocket::ignite()
         .manage(db)
         .manage(Arc::new(GlobalContext::new(config.deref())))
-        .mount("/", routes![
-               pages::index,
-               pages::watch,
-
-               rtmp::callback_on_publish,
-
-               btcpay::webhook,
-        ])
-        .attach(Template::fairing())
+        .mount(
+            "/",
+            routes![
+                pages::index,
+                pages::watch,
+                rtmp::callback_on_publish,
+                btcpay::webhook,
+            ],
+        )
+        .attach(Template::custom(|engines| {
+            engines.handlebars.register_helper("streq", Box::new(streq));
+        }))
         .launch();
 }

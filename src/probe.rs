@@ -1,5 +1,5 @@
-use std::process::Command;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use crate::monitor::NginxMeta;
 
@@ -14,7 +14,9 @@ impl VideoProbe {
             return Err(VideoProbeError::FileNotFound);
         }
 
-        Ok(VideoProbe { file: file.to_path_buf() })
+        Ok(VideoProbe {
+            file: file.to_path_buf(),
+        })
     }
 
     pub fn probe(self) -> Result<Vec<NginxMeta>, VideoProbeError> {
@@ -33,42 +35,82 @@ impl VideoProbe {
 
         let val: serde_json::Value = serde_json::from_slice(&output.stdout)?;
         let format = NginxMeta::Format {
-            duration: val["format"]["duration"].as_str().ok_or(VideoProbeError::MalformedOutput)?.parse().map_err(|_| VideoProbeError::MalformedOutput)?,
-            size: val["format"]["size"].as_str().ok_or(VideoProbeError::MalformedOutput)?.parse().map_err(|_| VideoProbeError::MalformedOutput)?,
+            duration: val["format"]["duration"]
+                .as_str()
+                .ok_or(VideoProbeError::MalformedOutput)?
+                .parse()
+                .map_err(|_| VideoProbeError::MalformedOutput)?,
+            size: val["format"]["size"]
+                .as_str()
+                .ok_or(VideoProbeError::MalformedOutput)?
+                .parse()
+                .map_err(|_| VideoProbeError::MalformedOutput)?,
         };
 
         val["streams"]
             .as_array()
             .ok_or(VideoProbeError::MalformedOutput)?
             .into_iter()
-            .filter(|s| s["codec_type"].as_str() == Some("video") || s["codec_type"].as_str() == Some("audio"))
+            .filter(|s| {
+                s["codec_type"].as_str() == Some("video")
+                    || s["codec_type"].as_str() == Some("audio")
+            })
             .map(|s| -> Result<NginxMeta, VideoProbeError> {
                 match s["codec_type"].as_str() {
                     Some("video") => {
-                        let frame_rate_str = s["r_frame_rate"].as_str().ok_or(VideoProbeError::MalformedOutput)?;
+                        let frame_rate_str = s["r_frame_rate"]
+                            .as_str()
+                            .ok_or(VideoProbeError::MalformedOutput)?;
                         let frame_rate_parts = frame_rate_str.split("/").collect::<Vec<&str>>();
                         if frame_rate_parts.len() != 2 {
                             return Err(VideoProbeError::MalformedOutput);
                         }
-                        let frame_rate_parts = frame_rate_parts.into_iter().map(|s| s.parse::<u32>()).collect::<Result<Vec<_>, _>>().map_err(|_| VideoProbeError::MalformedOutput)?;
+                        let frame_rate_parts = frame_rate_parts
+                            .into_iter()
+                            .map(|s| s.parse::<u32>())
+                            .collect::<Result<Vec<_>, _>>()
+                            .map_err(|_| VideoProbeError::MalformedOutput)?;
                         let frame_rate = frame_rate_parts[0] as f32 / frame_rate_parts[1] as f32;
 
                         Ok(NginxMeta::Video {
-                            width: s["width"].as_u64().ok_or(VideoProbeError::MalformedOutput)? as usize,
-                            height: s["height"].as_u64().ok_or(VideoProbeError::MalformedOutput)? as usize,
+                            width: s["width"]
+                                .as_u64()
+                                .ok_or(VideoProbeError::MalformedOutput)?
+                                as usize,
+                            height: s["height"]
+                                .as_u64()
+                                .ok_or(VideoProbeError::MalformedOutput)?
+                                as usize,
                             frame_rate,
-                            codec: s["codec_name"].as_str().ok_or(VideoProbeError::MalformedOutput)?.into(),
-                            profile: s["profile"].as_str().ok_or(VideoProbeError::MalformedOutput)?.into(),
+                            codec: s["codec_name"]
+                                .as_str()
+                                .ok_or(VideoProbeError::MalformedOutput)?
+                                .into(),
+                            profile: s["profile"]
+                                .as_str()
+                                .ok_or(VideoProbeError::MalformedOutput)?
+                                .into(),
                         })
-                    },
-                    Some("audio") => {
-                        Ok(NginxMeta::Audio {
-                            channels: s["channels"].as_u64().ok_or(VideoProbeError::MalformedOutput)? as usize,
-                            sample_rate: s["sample_rate"].as_str().ok_or(VideoProbeError::MalformedOutput)?.parse().map_err(|_| VideoProbeError::MalformedOutput)?,
-                            codec: s["codec_name"].as_str().ok_or(VideoProbeError::MalformedOutput)?.into(),
-                            profile: s["profile"].as_str().ok_or(VideoProbeError::MalformedOutput)?.into(),
-                        })
-                    },
+                    }
+                    Some("audio") => Ok(NginxMeta::Audio {
+                        channels: s["channels"]
+                            .as_u64()
+                            .ok_or(VideoProbeError::MalformedOutput)?
+                            as usize,
+                        sample_rate: s["sample_rate"]
+                            .as_str()
+                            .ok_or(VideoProbeError::MalformedOutput)?
+                            .parse()
+                            .map_err(|_| VideoProbeError::MalformedOutput)?,
+                        codec: s["codec_name"]
+                            .as_str()
+                            .ok_or(VideoProbeError::MalformedOutput)?
+                            .into(),
+                        profile: s["profile"]
+                            .as_str()
+                            .ok_or(VideoProbeError::MalformedOutput)?
+                            .into(),
+                    }),
                     _ => unimplemented!(),
                 }
             })

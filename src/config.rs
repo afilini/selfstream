@@ -54,5 +54,3 @@ impl From<toml::de::Error> for ConfigError {
         ConfigError::TOML(other)
     }
 }
-
-

@@ -72,7 +72,10 @@ pub struct NginxApplication {
 
 impl NginxApplication {
     pub fn get_stream(&self, name: &str) -> Option<&NginxStream> {
-        self.live.streams.as_ref().and_then(|arr| arr.iter().find(|a| a.name == name))
+        self.live
+            .streams
+            .as_ref()
+            .and_then(|arr| arr.iter().find(|a| a.name == name))
     }
 }
 
@@ -131,7 +134,7 @@ pub enum NginxMeta {
     Format {
         duration: f32,
         size: usize,
-    }
+    },
 }
 
 #[derive(Debug)]

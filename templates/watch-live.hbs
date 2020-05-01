@@ -19,9 +19,7 @@
         {{/if}}
     </div>
     <div class="col-12 col-md-5">
-        {{#unless status.Live}}
-            {{#unless status.Scheduled}}
-            {{else}}
+        {{#unless (streq (lookup this "status") "Processing")}}
         <div id="accordion">
             <div class="card">
               <div id="headingOne">
@@ -56,8 +54,9 @@
                 </div>
               </div>
             </div>
+
+            <script src="/static/chat.js"></script>
             {{/unless}}
-        {{/unless}}
     </div>
 </div>
 
@@ -110,7 +109,6 @@
 <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=es6,Array.prototype.includes,CustomEvent,Object.entries,Object.values,URL"></script>
 <script src="https://unpkg.com/plyr@3"></script>
 <script src="https://cdn.rawgit.com/video-dev/hls.js/18bb552/dist/hls.min.js"></script>
-<script src="/static/chat.js"></script>
 <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', () => {
         const source = '{{cdn_url}}/hls/{{id}}.m3u8';

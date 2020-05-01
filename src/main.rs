@@ -11,14 +11,14 @@ use tokio::task;
 use btcpay::*;
 
 mod api;
+mod config;
 mod db;
-mod monitor;
 mod encoder;
+mod monitor;
 mod probe;
+mod tasks;
 mod types;
 mod ws;
-mod tasks;
-mod config;
 
 #[tokio::main]
 async fn main() {
@@ -50,13 +50,8 @@ async fn main() {
         tasks::live_monitor::monitor_live_streams(cloned_db, cloned_monitor, cloned_config).await;
     });
 
-    let btcpay_key = SecretKey::from_slice(
-        &Vec::<u8>::from_hex(
-            &config.btcpay.key
-        )
-        .unwrap(),
-    )
-    .unwrap();
+    let btcpay_key =
+        SecretKey::from_slice(&Vec::<u8>::from_hex(&config.btcpay.key).unwrap()).unwrap();
     let btcpay_keypair: KeyPair = btcpay_key.into();
 
     let btcpay_client = BTCPayClient::new(
@@ -66,5 +61,11 @@ async fn main() {
     )
     .unwrap();
 
-    ws::start(&config.listen, db.clone(), Arc::new(btcpay_client), config.clone()).await;
+    ws::start(
+        &config.listen,
+        db.clone(),
+        Arc::new(btcpay_client),
+        config.clone(),
+    )
+    .await;
 }

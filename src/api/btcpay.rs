@@ -4,16 +4,16 @@ use log::debug;
 
 use serde::Deserialize;
 
-use rocket::{post, State};
 use rocket::http::Status;
-use rocket::request::{LenientForm, FromForm};
+use rocket::request::{FromForm, LenientForm};
+use rocket::{post, State};
 use rocket_contrib::json::Json;
 
 use btcpay::{Invoice, InvoiceStatus};
 
-use crate::db::{RedisMultiplexed, RedisEntity};
-use crate::types::{BoostMessageInvoice, WsPacket, MessageExtra};
+use crate::db::{RedisEntity, RedisMultiplexed};
 use crate::tasks;
+use crate::types::{BoostMessageInvoice, MessageExtra, WsPacket};
 
 #[derive(Debug, Deserialize)]
 pub struct WebhookData {
@@ -34,7 +34,9 @@ pub fn webhook(input: Json<WebhookData>, db: State<Arc<RedisMultiplexed>>) -> St
     match input.data.status {
         InvoiceStatus::Paid | InvoiceStatus::Completed | InvoiceStatus::Confirmed => {
             // TODO: nice TOCTOU here :)
-            if let Some(invoice) = BoostMessageInvoice::sync_get(&db, input.data.id.clone()).unwrap() {
+            if let Some(invoice) =
+                BoostMessageInvoice::sync_get(&db, input.data.id.clone()).unwrap()
+            {
                 // remove invoice
                 invoice.sync_del(&db).unwrap();
 
@@ -48,14 +50,23 @@ pub fn webhook(input: Json<WebhookData>, db: State<Arc<RedisMultiplexed>>) -> St
                 };
 
                 // publish message
-                let extra = MessageExtra { amount, timestamp: 0, duration };
-                let packet = WsPacket::ServerMessage { from: invoice.from, message: invoice.message, extra: Some(extra) };
-                let _: () = redis::Cmd::publish(invoice.room, &serde_json::to_string(&packet).unwrap())
-                    .query(&mut db.get_connection().unwrap())
-                    .unwrap();
+                let extra = MessageExtra {
+                    amount,
+                    timestamp: 0,
+                    duration,
+                };
+                let packet = WsPacket::ServerMessage {
+                    from: invoice.from,
+                    message: invoice.message,
+                    extra: Some(extra),
+                };
+                let _: () =
+                    redis::Cmd::publish(invoice.room, &serde_json::to_string(&packet).unwrap())
+                        .query(&mut db.get_connection().unwrap())
+                        .unwrap();
             }
-        },
-        _ => {},
+        }
+        _ => {}
     }
 
     Status::Ok

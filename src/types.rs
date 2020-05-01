@@ -4,16 +4,33 @@ use crate::db::RedisEntity;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum WsPacket {
-    Join { room: String },
-    AssignedUsername { username: String },
+    Join {
+        room: String,
+    },
+    AssignedUsername {
+        username: String,
+    },
 
-    ServerMessage { from: String, message: String, extra: Option<MessageExtra> },
-    ClientMessage { message: String },
+    ServerMessage {
+        from: String,
+        message: String,
+        extra: Option<MessageExtra>,
+    },
+    ClientMessage {
+        message: String,
+    },
 
-    GetInvoice { amount: u64, message: String },
-    Invoice { id: String },
+    GetInvoice {
+        amount: u64,
+        message: String,
+    },
+    Invoice {
+        id: String,
+    },
 
-    UpdateViewers { viewers: usize },
+    UpdateViewers {
+        viewers: usize,
+    },
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -83,8 +100,6 @@ impl RedisEntity for BoostMessageInvoice {
         &self.id
     }
 }
-
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Message {

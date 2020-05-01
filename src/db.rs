@@ -51,7 +51,12 @@ impl RedisMultiplexed {
     }
 
     pub fn subscribed_count(&self, channel: &str) -> usize {
-        self.buckets.read().unwrap().get(channel).map(HashMap::len).unwrap_or(0)
+        self.buckets
+            .read()
+            .unwrap()
+            .get(channel)
+            .map(HashMap::len)
+            .unwrap_or(0)
     }
 
     pub fn mainloop(&self) -> RedisResult<()> {
@@ -129,8 +134,7 @@ impl std::fmt::Display for RedisFetchError {
     }
 }
 
-impl std::error::Error for RedisFetchError {
-}
+impl std::error::Error for RedisFetchError {}
 
 impl From<redis::RedisError> for RedisFetchError {
     fn from(other: redis::RedisError) -> Self {
@@ -194,8 +198,8 @@ where
         let data: Option<String> = Self::get_cmd(id).query(&mut con)?;
 
         Ok(data
-           .and_then(|data| Some(serde_json::from_str(&data)))
-           .transpose()?)
+            .and_then(|data| Some(serde_json::from_str(&data)))
+            .transpose()?)
     }
 
     fn sync_save(&self, client: &RedisMultiplexed) -> Result<usize, RedisFetchError> {
@@ -229,8 +233,8 @@ where
         let data: Option<String> = Self::get_cmd(id).query_async(&mut con).await?;
 
         Ok(data
-           .and_then(|data| Some(serde_json::from_str(&data)))
-           .transpose()?)
+            .and_then(|data| Some(serde_json::from_str(&data)))
+            .transpose()?)
     }
 
     async fn save(&self, client: &RedisMultiplexed) -> Result<usize, RedisFetchError> {

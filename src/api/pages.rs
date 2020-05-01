@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use rocket::{get, State};
 use rocket::http::Status;
 use rocket::response::{Redirect, Responder};
+use rocket::{get, State};
 use rocket_contrib::templates::Template;
 
-use crate::db::{RedisMultiplexed, RedisEntity};
-use crate::types::{Video, VideoStatus};
 use super::GlobalContext;
+use crate::db::{RedisEntity, RedisMultiplexed};
+use crate::types::{Video, VideoStatus};
 
 #[get("/")]
 pub fn index(db: State<Arc<RedisMultiplexed>>) -> FullResponse {
@@ -16,12 +16,44 @@ pub fn index(db: State<Arc<RedisMultiplexed>>) -> FullResponse {
 }
 
 #[get("/watch?<v>")]
-pub fn watch(db: State<Arc<RedisMultiplexed>>, globals: State<Arc<GlobalContext>>, v: String) -> FullResponse {
+pub fn watch(
+    db: State<Arc<RedisMultiplexed>>,
+    globals: State<Arc<GlobalContext>>,
+    v: String,
+) -> FullResponse {
     match Video::sync_get(&db, v).unwrap() {
-        Some(v @ Video { status: VideoStatus::Live { .. }, .. }) => Template::render("watch-live", &globals.extend(&v)).into(),
-        Some(v @ Video { status: VideoStatus::Processing, .. }) => Template::render("watch-live", &globals.extend(&v)).into(),
-        Some(v @ Video { status: VideoStatus::Published { .. }, .. }) => Template::render("watch-published", &globals.extend(&v)).into(),
-        Some(v @ Video { status: VideoStatus::Scheduled { .. }, .. }) => Template::render("watch-live", &globals.extend(&v)).into(),
+        Some(
+            v
+            @
+            Video {
+                status: VideoStatus::Live { .. },
+                ..
+            },
+        ) => Template::render("watch-live", &globals.extend(&v)).into(),
+        Some(
+            v
+            @
+            Video {
+                status: VideoStatus::Processing,
+                ..
+            },
+        ) => Template::render("watch-live", &globals.extend(&v)).into(),
+        Some(
+            v
+            @
+            Video {
+                status: VideoStatus::Published { .. },
+                ..
+            },
+        ) => Template::render("watch-published", &globals.extend(&v)).into(),
+        Some(
+            v
+            @
+            Video {
+                status: VideoStatus::Scheduled { .. },
+                ..
+            },
+        ) => Template::render("watch-live", &globals.extend(&v)).into(),
         _ => Status::NotFound.into(),
     }
 }
@@ -30,7 +62,7 @@ pub fn watch(db: State<Arc<RedisMultiplexed>>, globals: State<Arc<GlobalContext>
 pub enum FullResponse {
     Template(Template),
     Redirect(Redirect),
-    Status(Status)
+    Status(Status),
 }
 
 impl From<Template> for FullResponse {
