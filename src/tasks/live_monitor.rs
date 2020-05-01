@@ -28,6 +28,20 @@ pub async fn monitor_live_streams(
         let src_app = status.get_application("src").unwrap();
 
         for (id, mut video) in Video::list(&db).await.unwrap() {
+            match video.status {
+                VideoStatus::Live { .. } | VideoStatus::Scheduled { .. } => {
+                    // update the viewers count
+                    let packet = WsPacket::UpdateViewers {
+                        viewers: db.subscribed_count(&id),
+                    };
+                    let _: () = redis::Cmd::publish(&id, &serde_json::to_string(&packet).unwrap())
+                        .query_async(&mut db.get_multiplexed_tokio_connection().await.unwrap())
+                        .await
+                        .unwrap();
+                },
+                _ => {}
+            }
+
             if let VideoStatus::Live {
                 started_timestamp, ..
             } = video.status
@@ -40,15 +54,6 @@ pub async fn monitor_live_streams(
                     )
                     .unwrap();
                 let stream = src_app.get_stream(&id);
-
-                // update the viewers count
-                let packet = WsPacket::UpdateViewers {
-                    viewers: db.subscribed_count(&id),
-                };
-                let _: () = redis::Cmd::publish(&id, &serde_json::to_string(&packet).unwrap())
-                    .query_async(&mut db.get_multiplexed_tokio_connection().await.unwrap())
-                    .await
-                    .unwrap();
 
                 debug!("Currently live: {} ~{:?}", id, live_for);
                 trace!("{:#?}", stream);
